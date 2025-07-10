@@ -1,0 +1,23 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  Macpaw\SchemaContextBundle\Service\SchemaResolver:
+    public: true
+    shared: true
+
+  Macpaw\SchemaContextBundle\EventListener\SchemaRequestListener:
+    arguments:
+      $schemaResolver: '@Macpaw\SchemaContextBundle\Service\SchemaResolver'
+      $schemaRequestHeader: '%schema_context.header_name%'
+      $defaultSchema: '%schema_context.default_schema%'
+      $appName: '%schema_context.app_name%'
+      $allowedAppNames: '%schema_context.allowed_app_names%'
+    tags:
+      - { name: kernel.event_subscriber }
+
+  Macpaw\SchemaContextBundle\Messenger\Middleware\SchemaMiddleware:
+    tags:
+      - { name: messenger.middleware }
