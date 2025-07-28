@@ -6,10 +6,11 @@ The **SchemaContextBundle** provides a lightweight way to manage dynamic schema 
 
 ## Features
 
-- Extracts tenant schema from request headers.
+- Extracts tenant schema param from baggage request header.
 - Stores schema context in a global `SchemaResolver`.
 - Injects schema info into Messenger messages via a middleware.
 - Rehydrates schema on message consumption via a middleware.
+- Provide decorator for Http clients to propagate schema header
 
 ---
 
@@ -55,6 +56,19 @@ public function index(SchemaResolver $schemaResolver)
     $schema = $schemaResolver->getSchema();
     // Use schema in logic
 }
+```
+
+## Schema-Aware HTTP Client
+Decorate your http client in your service configuration:
+```yaml
+services:
+    schema_aware_payment_http_client:
+      class: Macpaw\SchemaContextBundle\HttpClient\SchemaAwareHttpClient
+      decorates: payment_http_client #http client to decorate
+      arguments:
+        - '@schema_aware_payment_http_client.inner'
+        - '@Macpaw\SchemaContextBundle\Service\SchemaResolver'
+        - '%schema_context.header_name%'
 ```
 
 ## Messenger Integration

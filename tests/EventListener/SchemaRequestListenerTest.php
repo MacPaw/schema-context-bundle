@@ -24,7 +24,7 @@ class SchemaRequestListenerTest extends TestCase
             ['test-app'],
         );
 
-        $request = new Request([], [], [], [], [], ['HTTP_X_SCHEMA' => 'tenant1']);
+        $request = new Request([], [], [], [], [], ['HTTP_BAGGAGE' => 'X-Schema=tenant1']);
         $kernel = $this->createMock(HttpKernelInterface::class);
         $event = new RequestEvent($kernel, $request, HttpKernelInterface::MAIN_REQUEST);
 
