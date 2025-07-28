@@ -32,7 +32,24 @@ class SchemaRequestListener implements EventSubscriberInterface
             return;
         }
 
-        $schema = $event->getRequest()->headers->get($this->schemaRequestHeader, $this->defaultSchema);
+        $request = $event->getRequest();
+        $baggage = $request->headers->get('baggage');
+
+        if ($baggage) {
+            foreach (explode(',', $baggage) as $part) {
+                [$key, $value] = array_map(
+                    static fn(?string $v): ?string => $v !== null ? trim($v) : null,
+                    explode('=', $part, 2) + [null, null]
+                );
+
+                if ($key === $this->schemaRequestHeader && $value !== null) {
+                    $schema = $value;
+                    break;
+                }
+            }
+        }
+
+        $schema ??= $this->defaultSchema;
 
         if ($schema !== null && $schema !== '') {
             $this->schemaResolver->setSchema($schema);
