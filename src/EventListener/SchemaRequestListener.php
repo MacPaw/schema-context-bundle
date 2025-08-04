@@ -23,7 +23,7 @@ class SchemaRequestListener implements EventSubscriberInterface
 
     public static function getSubscribedEvents(): array
     {
-        return [KernelEvents::REQUEST => 'onKernelRequest'];
+        return [KernelEvents::REQUEST => [['onKernelRequest', 100]]];
     }
 
     public function onKernelRequest(RequestEvent $event): void
