@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Macpaw\SchemaContextBundle\Tests\Messenger\Middleware;
 
 use Macpaw\SchemaContextBundle\Messenger\Middleware\BaggageMiddleware;
-use Macpaw\SchemaContextBundle\Messenger\Stamp\BaggageStamp;
+use Macpaw\SchemaContextBundle\Messenger\Stamp\BaggageSchemaStamp;
 use Macpaw\SchemaContextBundle\Service\BaggageCodec;
 use Macpaw\SchemaContextBundle\Service\BaggageSchemaResolver;
 use PHPUnit\Framework\TestCase;
@@ -26,7 +26,7 @@ class BaggageMiddlewareTest extends TestCase
         $resolver = new BaggageSchemaResolver();
         $baggageCodec = new BaggageCodec();
         $middleware = new BaggageMiddleware($resolver, $baggageCodec);
-        $stamp = new BaggageStamp($schema, $rawBaggage);
+        $stamp = new BaggageSchemaStamp($schema, $rawBaggage);
         $envelope = (new Envelope(new \stdClass()))->with($stamp);
         $stack = $this->createMock(StackInterface::class);
         $nextMiddleware = new class implements MiddlewareInterface {
@@ -75,9 +75,9 @@ class BaggageMiddlewareTest extends TestCase
 
         $resultEnvelope = $middleware->handle($originalEnvelope, $stack);
 
-        $stamp = $resultEnvelope->last(BaggageStamp::class);
+        $stamp = $resultEnvelope->last(BaggageSchemaStamp::class);
 
-        $this->assertInstanceOf(BaggageStamp::class, $stamp);
+        $this->assertInstanceOf(BaggageSchemaStamp::class, $stamp);
         $this->assertSame($schema, $stamp->schema);
         $this->assertSame($rawBaggage, $stamp->baggage);
     }

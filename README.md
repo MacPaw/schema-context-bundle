@@ -75,7 +75,7 @@ services:
 ## Messenger Integration
 The bundle provides a middleware that automatically:
 
-* Adds a BaggageStamp to dispatched messages
+* Adds a BaggageSchemaStamp to dispatched messages
 
 * Restores the schema and baggage context on message handling
 
