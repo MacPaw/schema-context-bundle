@@ -22,6 +22,6 @@ services:
     tags:
       - { name: kernel.event_subscriber }
 
-  Macpaw\SchemaContextBundle\Messenger\Middleware\BaggageMiddleware:
+  Macpaw\SchemaContextBundle\Messenger\Middleware\BaggageSchemaMiddleware:
     tags:
       - { name: messenger.middleware }
