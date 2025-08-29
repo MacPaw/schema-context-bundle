@@ -4,13 +4,13 @@ services:
     autoconfigure: true
     public: false
 
-  Macpaw\SchemaContextBundle\Service\SchemaResolver:
+  Macpaw\SchemaContextBundle\Service\BaggageSchemaResolver:
     public: true
     shared: true
 
-  Macpaw\SchemaContextBundle\EventListener\SchemaRequestListener:
+  Macpaw\SchemaContextBundle\EventListener\BaggageRequestListener:
     arguments:
-      $schemaResolver: '@Macpaw\SchemaContextBundle\Service\SchemaResolver'
+      $baggageSchemaResolver: '@Macpaw\SchemaContextBundle\Service\BaggageSchemaResolver'
       $schemaRequestHeader: '%schema_context.header_name%'
       $defaultSchema: '%schema_context.default_schema%'
       $appName: '%schema_context.app_name%'
@@ -18,6 +18,6 @@ services:
     tags:
       - { name: kernel.event_subscriber }
 
-  Macpaw\SchemaContextBundle\Messenger\Middleware\SchemaMiddleware:
+  Macpaw\SchemaContextBundle\Messenger\Middleware\BaggageMiddleware:
     tags:
       - { name: messenger.middleware }

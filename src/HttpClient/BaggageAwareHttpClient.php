@@ -4,17 +4,18 @@ declare(strict_types=1);
 
 namespace Macpaw\SchemaContextBundle\HttpClient;
 
+use Macpaw\SchemaContextBundle\Service\BaggageCodec;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
-use Macpaw\SchemaContextBundle\Service\SchemaResolver;
+use Macpaw\SchemaContextBundle\Service\BaggageSchemaResolver;
 use Symfony\Contracts\HttpClient\ResponseStreamInterface;
 
-class SchemaAwareHttpClient implements HttpClientInterface
+class BaggageAwareHttpClient implements HttpClientInterface
 {
     public function __construct(
         private HttpClientInterface $inner,
-        private SchemaResolver $schemaResolver,
-        private string $schemaRequestHeader
+        private BaggageSchemaResolver $baggageSchemaResolver,
+        private BaggageCodec $baggageCodec,
     ) {
     }
 
@@ -23,18 +24,20 @@ class SchemaAwareHttpClient implements HttpClientInterface
      */
     public function request(string $method, string $url, array $options = []): ResponseInterface
     {
-        $schema = $this->schemaResolver->getSchema();
-        $baggageHeader = $this->schemaRequestHeader . '=' . $schema;
         $headers = isset($options['headers']) && is_array($options['headers'])
             ? $options['headers']
             : [];
 
-        if (isset($headers['baggage'])) {
-            $headers['baggage'] .= ',' . $baggageHeader;
-        } else {
-            $headers['baggage'] = $baggageHeader;
-        }
+        $baggage = isset($headers['baggage'])
+            ? $this->baggageCodec->decode($headers['baggage'])
+            : [];
 
+        $baggage = [
+            ...$baggage,
+            ...($this->baggageSchemaResolver->getBaggage() ?? [])
+        ];
+
+        $headers['baggage'] = $this->baggageCodec->encode($baggage);
         $options['headers'] = $headers;
 
         return $this->inner->request($method, $url, $options);
@@ -53,6 +56,6 @@ class SchemaAwareHttpClient implements HttpClientInterface
         $wrapped = $this->inner->withOptions($options);
 
         /** @phpstan-ignore-next-line */
-        return new self($wrapped, $this->schemaResolver, $this->schemaRequestHeader);
+        return new self($wrapped, $this->baggageSchemaResolver, $this->baggageCodec);
     }
 }

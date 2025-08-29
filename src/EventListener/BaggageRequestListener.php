@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 namespace Macpaw\SchemaContextBundle\EventListener;
 
-use Macpaw\SchemaContextBundle\Service\SchemaResolver;
+use Macpaw\SchemaContextBundle\Service\BaggageCodec;
+use Macpaw\SchemaContextBundle\Service\BaggageSchemaResolver;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
-class SchemaRequestListener implements EventSubscriberInterface
+class BaggageRequestListener implements EventSubscriberInterface
 {
     public function __construct(
-        private SchemaResolver $schemaResolver,
+        private BaggageSchemaResolver $baggageSchemaResolver,
+        private BaggageCodec $baggageCodec,
         private string $schemaRequestHeader,
         private string $defaultSchema,
         private string $appName,
@@ -35,24 +37,18 @@ class SchemaRequestListener implements EventSubscriberInterface
         $request = $event->getRequest();
         $baggage = $request->headers->get('baggage');
 
+        $schema = null;
         if ($baggage) {
-            foreach (explode(',', $baggage) as $part) {
-                [$key, $value] = array_map(
-                    static fn(?string $v): ?string => $v !== null ? trim($v) : null,
-                    explode('=', $part, 2) + [null, null]
-                );
+            $baggage = $this->baggageCodec->decode($baggage);
+            $this->baggageSchemaResolver->setBaggage($baggage);
 
-                if ($key === $this->schemaRequestHeader && $value !== null) {
-                    $schema = $value;
-                    break;
-                }
-            }
+            $schema = $baggage[$this->schemaRequestHeader] ?? null;
         }
 
-        $schema ??= $this->defaultSchema;
-
         if ($schema !== null && $schema !== '') {
-            $this->schemaResolver->setSchema($schema);
+            $this->baggageSchemaResolver->setSchema($schema);
+        } else {
+            $this->baggageSchemaResolver->setSchema($this->defaultSchema);
         }
     }
 

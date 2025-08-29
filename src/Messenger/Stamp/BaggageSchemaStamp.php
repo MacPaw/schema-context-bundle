@@ -6,9 +6,9 @@ namespace Macpaw\SchemaContextBundle\Messenger\Stamp;
 
 use Symfony\Component\Messenger\Stamp\StampInterface;
 
-class SchemaStamp implements StampInterface
+class BaggageSchemaStamp implements StampInterface
 {
-    public function __construct(public string $schema)
+    public function __construct(public string $schema, public string $baggage)
     {
     }
 }

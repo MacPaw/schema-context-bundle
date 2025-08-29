@@ -7,10 +7,10 @@ The **SchemaContextBundle** provides a lightweight way to manage dynamic schema 
 ## Features
 
 - Extracts tenant schema param from baggage request header.
-- Stores schema context in a global `SchemaResolver`.
-- Injects schema info into Messenger messages via a middleware.
-- Rehydrates schema on message consumption via a middleware.
-- Provide decorator for Http clients to propagate schema header
+- Stores schema and baggage context in a global `BaggageSchemaResolver`.
+- Injects schema and baggage info into Messenger messages via a middleware.
+- Rehydrates schema and baggage on message consumption via a middleware.
+- Provide decorator for Http clients to propagate baggage header
 
 ---
 
@@ -49,34 +49,35 @@ APP_NAME=develop
 ## Usage
 
 ```php
-use Macpaw\SchemaContextBundle\Service\SchemaResolver;
+use Macpaw\SchemaContextBundle\Service\BaggageSchemaResolver;
 
-public function index(SchemaResolver $schemaResolver)
+public function index(BaggageSchemaResolver $schemaResolver)
 {
     $schema = $schemaResolver->getSchema();
+    $baggage = $schemaResolver->getBaggage();
     // Use schema in logic
 }
 ```
 
-## Schema-Aware HTTP Client
+## Baggage-Aware HTTP Client
 Decorate your http client in your service configuration:
 ```yaml
 services:
-    schema_aware_payment_http_client:
-      class: Macpaw\SchemaContextBundle\HttpClient\SchemaAwareHttpClient
+    baggage_aware_payment_http_client:
+      class: Macpaw\SchemaContextBundle\HttpClient\BaggageAwareHttpClient
       decorates: payment_http_client #http client to decorate
       arguments:
-        - '@schema_aware_payment_http_client.inner'
-        - '@Macpaw\SchemaContextBundle\Service\SchemaResolver'
-        - '%schema_context.header_name%'
+        - '@baggage_aware_payment_http_client.inner'
+        - '@Macpaw\SchemaContextBundle\Service\BaggageSchemaResolver'
+        - '@Macpaw\SchemaContextBundle\Service\BaggageCodec'
 ```
 
 ## Messenger Integration
 The bundle provides a middleware that automatically:
 
-* Adds a SchemaStamp to dispatched messages
+* Adds a BaggageSchemaStamp to dispatched messages
 
-* Restores the schema context on message handling
+* Restores the schema and baggage context on message handling
 
 Enable the middleware in your `messenger.yaml`:
 
@@ -86,7 +87,7 @@ framework:
     buses:
       messenger.bus.default:
         middleware:
-        - Macpaw\SchemaContextBundle\Messenger\Middleware\SchemaMiddleware
+        - Macpaw\SchemaContextBundle\Messenger\Middleware\BaggageMiddleware
 ```
 
 ## Testing
@@ -100,4 +101,3 @@ Feel free to open issues and submit pull requests.
 
 ## License
 This bundle is released under the MIT license.
-
