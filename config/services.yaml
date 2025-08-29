@@ -8,6 +8,10 @@ services:
     public: true
     shared: true
 
+  Macpaw\SchemaContextBundle\Service\BaggageCodec:
+    public: true
+    shared: true
+
   Macpaw\SchemaContextBundle\EventListener\BaggageRequestListener:
     arguments:
       $baggageSchemaResolver: '@Macpaw\SchemaContextBundle\Service\BaggageSchemaResolver'
@@ -18,6 +22,6 @@ services:
     tags:
       - { name: kernel.event_subscriber }
 
-  Macpaw\SchemaContextBundle\Messenger\Middleware\BaggageMiddleware:
+  Macpaw\SchemaContextBundle\Messenger\Middleware\BaggageSchemaMiddleware:
     tags:
       - { name: messenger.middleware }
