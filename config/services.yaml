@@ -8,6 +8,10 @@ services:
     public: true
     shared: true
 
+  Macpaw\SchemaContextBundle\Service\BaggageCodec:
+    public: true
+    shared: true
+
   Macpaw\SchemaContextBundle\EventListener\BaggageRequestListener:
     arguments:
       $baggageSchemaResolver: '@Macpaw\SchemaContextBundle\Service\BaggageSchemaResolver'
