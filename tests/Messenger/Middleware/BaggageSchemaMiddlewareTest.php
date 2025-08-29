@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Macpaw\SchemaContextBundle\Tests\Messenger\Middleware;
 
-use Macpaw\SchemaContextBundle\Messenger\Middleware\BaggageMiddleware;
+use Macpaw\SchemaContextBundle\Messenger\Middleware\BaggageSchemaMiddleware;
 use Macpaw\SchemaContextBundle\Messenger\Stamp\BaggageSchemaStamp;
 use Macpaw\SchemaContextBundle\Service\BaggageCodec;
 use Macpaw\SchemaContextBundle\Service\BaggageSchemaResolver;
@@ -13,7 +13,7 @@ use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Middleware\MiddlewareInterface;
 use Symfony\Component\Messenger\Middleware\StackInterface;
 
-class BaggageMiddlewareTest extends TestCase
+class BaggageSchemaMiddlewareTest extends TestCase
 {
     public function testSchemaIsSetFromStamp(): void
     {
@@ -25,7 +25,7 @@ class BaggageMiddlewareTest extends TestCase
 
         $resolver = new BaggageSchemaResolver();
         $baggageCodec = new BaggageCodec();
-        $middleware = new BaggageMiddleware($resolver, $baggageCodec);
+        $middleware = new BaggageSchemaMiddleware($resolver, $baggageCodec);
         $stamp = new BaggageSchemaStamp($schema, $rawBaggage);
         $envelope = (new Envelope(new \stdClass()))->with($stamp);
         $stack = $this->createMock(StackInterface::class);
@@ -58,7 +58,7 @@ class BaggageMiddlewareTest extends TestCase
             ->setSchema($schema)
             ->setBaggage($baggage);
         $baggageCodec = new BaggageCodec();
-        $middleware = new BaggageMiddleware($resolver, $baggageCodec);
+        $middleware = new BaggageSchemaMiddleware($resolver, $baggageCodec);
         $originalEnvelope = new Envelope(new \stdClass());
         $stack = $this->createMock(StackInterface::class);
 

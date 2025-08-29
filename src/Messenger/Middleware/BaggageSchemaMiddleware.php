@@ -11,7 +11,7 @@ use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Middleware\MiddlewareInterface;
 use Symfony\Component\Messenger\Middleware\StackInterface;
 
-class BaggageMiddleware implements MiddlewareInterface
+class BaggageSchemaMiddleware implements MiddlewareInterface
 {
     public function __construct(
         private BaggageSchemaResolver $baggageSchemaResolver,
