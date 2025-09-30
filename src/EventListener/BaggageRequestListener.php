@@ -20,6 +20,8 @@ class BaggageRequestListener implements EventSubscriberInterface
         private string $appName,
         /** @var string[] */
         private array $allowedAppNames,
+        /** @var string[] */
+        private array $allowedAppNamesRegex,
     ) {
     }
 
@@ -54,6 +56,18 @@ class BaggageRequestListener implements EventSubscriberInterface
 
     private function isAllowedAppName(): bool
     {
-        return in_array($this->appName, $this->allowedAppNames, true);
+        $isAppNameAllowed = in_array($this->appName, $this->allowedAppNames, true);
+
+        if ($isAppNameAllowed === true || count($this->allowedAppNamesRegex) === 0) {
+            return $isAppNameAllowed;
+        }
+
+        foreach ($this->allowedAppNamesRegex as $pattern) {
+            if (preg_match($pattern, $this->appName) === 1) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

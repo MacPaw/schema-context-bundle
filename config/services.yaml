@@ -19,6 +19,7 @@ services:
       $defaultSchema: '%schema_context.default_schema%'
       $appName: '%schema_context.app_name%'
       $allowedAppNames: '%schema_context.allowed_app_names%'
+      $allowedAppNamesRegex: '%schema_context.allowed_app_names_regex%'
     tags:
       - { name: kernel.event_subscriber }
 

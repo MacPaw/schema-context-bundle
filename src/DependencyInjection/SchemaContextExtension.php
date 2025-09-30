@@ -20,6 +20,7 @@ class SchemaContextExtension extends Extension
         $container->setParameter('schema_context.default_schema', $config['default_schema']);
         $container->setParameter('schema_context.app_name', $config['app_name']);
         $container->setParameter('schema_context.allowed_app_names', $config['allowed_app_names']);
+        $container->setParameter('schema_context.allowed_app_names_regex', $config['allowed_app_names_regex']);
 
         $loader = new YamlFileLoader($container, new FileLocator(__DIR__ . '/../../config'));
 

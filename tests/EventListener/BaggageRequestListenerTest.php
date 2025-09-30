@@ -25,6 +25,7 @@ class BaggageRequestListenerTest extends TestCase
             'default',
             'test-app',
             ['test-app'],
+            [],
         );
 
         $request = new Request([], [], [], [], [], ['HTTP_BAGGAGE' => 'X-Schema=tenant1']);
@@ -50,6 +51,7 @@ class BaggageRequestListenerTest extends TestCase
             'default',
             'test-app',
             ['test-app'],
+            [],
         );
 
         $request = new Request([], [], [], [], [], ['HTTP_BAGGAGE' => 'X-Schema= tenant1 ,test , foo=bar']);
@@ -77,6 +79,7 @@ class BaggageRequestListenerTest extends TestCase
             'fallback',
             'test-app',
             ['test-app'],
+            []
         );
 
         $request = new Request();
@@ -86,6 +89,122 @@ class BaggageRequestListenerTest extends TestCase
         $listener->onKernelRequest($event);
 
         self::assertSame('fallback', $resolver->getSchema());
+        self::assertNull($resolver->getBaggage());
+    }
+
+    public function testAppNameIsAllowed(): void
+    {
+        $resolver = new BaggageSchemaResolver();
+        $baggageCodec = new BaggageCodec();
+        $listener = new BaggageRequestListener(
+            $resolver,
+            $baggageCodec,
+            'X-Schema',
+            'fallback',
+            'test-app',
+            ['test-app'],
+            [],
+        );
+
+        $request = new Request();
+        $kernel = $this->createMock(HttpKernelInterface::class);
+        $event = new RequestEvent($kernel, $request, HttpKernelInterface::MAIN_REQUEST);
+
+        $listener->onKernelRequest($event);
+
+        $reflection = new \ReflectionClass(BaggageRequestListener::class);
+        $reflectionMethod = $reflection->getMethod('isAllowedAppName');
+        $reflectionMethod->setAccessible(true);
+
+        self::assertTrue($reflectionMethod->invoke($listener));
+        self::assertSame('fallback', $resolver->getSchema());
+        self::assertNull($resolver->getBaggage());
+    }
+
+    public function testAppNameIsNotAllowed(): void
+    {
+        $resolver = new BaggageSchemaResolver();
+        $baggageCodec = new BaggageCodec();
+        $listener = new BaggageRequestListener(
+            $resolver,
+            $baggageCodec,
+            'X-Schema',
+            'fallback',
+            'staging',
+            ['test-app'],
+            [],
+        );
+
+        $request = new Request();
+        $kernel = $this->createMock(HttpKernelInterface::class);
+        $event = new RequestEvent($kernel, $request, HttpKernelInterface::MAIN_REQUEST);
+
+        $listener->onKernelRequest($event);
+
+        $reflection = new \ReflectionClass(BaggageRequestListener::class);
+        $reflectionMethod = $reflection->getMethod('isAllowedAppName');
+        $reflectionMethod->setAccessible(true);
+
+        self::assertFalse($reflectionMethod->invoke($listener));
+        self::assertNull($resolver->getSchema());
+        self::assertNull($resolver->getBaggage());
+    }
+
+    public function testAppNameIsNotAllowedByRegex(): void
+    {
+        $resolver = new BaggageSchemaResolver();
+        $baggageCodec = new BaggageCodec();
+        $listener = new BaggageRequestListener(
+            $resolver,
+            $baggageCodec,
+            'X-Schema',
+            'fallback',
+            'staging',
+            ['test-app'],
+            ['/^prod$/'],
+        );
+
+        $request = new Request();
+        $kernel = $this->createMock(HttpKernelInterface::class);
+        $event = new RequestEvent($kernel, $request, HttpKernelInterface::MAIN_REQUEST);
+
+        $listener->onKernelRequest($event);
+
+        $reflection = new \ReflectionClass(BaggageRequestListener::class);
+        $reflectionMethod = $reflection->getMethod('isAllowedAppName');
+        $reflectionMethod->setAccessible(true);
+
+        self::assertFalse($reflectionMethod->invoke($listener));
+        self::assertNull($resolver->getSchema());
+        self::assertNull($resolver->getBaggage());
+    }
+
+    public function testAppNameIsAllowedByRegex(): void
+    {
+        $resolver = new BaggageSchemaResolver();
+        $baggageCodec = new BaggageCodec();
+        $listener = new BaggageRequestListener(
+            $resolver,
+            $baggageCodec,
+            'X-Schema',
+            'fallback',
+            'pr-100',
+            ['test-app'],
+            ['/^pr-\d+$/'],
+        );
+
+        $request = new Request();
+        $kernel = $this->createMock(HttpKernelInterface::class);
+        $event = new RequestEvent($kernel, $request, HttpKernelInterface::MAIN_REQUEST);
+
+        $listener->onKernelRequest($event);
+
+        $reflection = new \ReflectionClass(BaggageRequestListener::class);
+        $reflectionMethod = $reflection->getMethod('isAllowedAppName');
+        $reflectionMethod->setAccessible(true);
+
+        self::assertTrue($reflectionMethod->invoke($listener));
+        self::assertEquals('fallback', $resolver->getSchema());
         self::assertNull($resolver->getBaggage());
     }
 }

@@ -35,11 +35,38 @@ Add this config to `config/packages/schema_context.yaml`:
 
 ```yaml
 schema_context:
-    app_name: '%env(APP_NAME)%' # Application name
-    header_name: 'X-Tenant' # Request header to extract schema name
-    default_schema: 'public' # Default schema to fallback to
-    allowed_app_names: ['develop', 'staging', 'test'] # App names where schema context is allowed to change
+    # Name of your application (required). Used to decide whether incoming
+    # requests are allowed to override the schema from baggage.
+    app_name: '%env(APP_NAME)%'
+
+    # The KEY inside the RFC 8941 "baggage" HTTP header that holds the schema name.
+    # This is NOT an HTTP header name itself. Default: 'X-Schema'
+    header_name: 'X-Schema'
+
+    # Fallback schema used when baggage doesn't contain the key or value is empty
+    default_schema: 'public'
+
+    # Explicit app names that ARE allowed to take schema from baggage
+    allowed_app_names: ['develop', 'staging', 'test']
+
+    # Additionally allow app names by regex patterns (evaluated with preg_match)
+    # Example: allow PR preview apps like "pr-123"
+    allowed_app_names_regex: ['/^pr-\d+$/']
 ```
+
+Notes:
+- The bundle reads the standard "baggage" HTTP header and expects a comma-separated list of key=value pairs.
+- It looks up the schema by the configured header_name key inside that baggage.
+
+Example incoming HTTP headers:
+```
+GET / HTTP/1.1
+Host: example.test
+baggage: X-Schema=tenant_42,traceId=abc123
+```
+
+With the config above, the bundle will resolve schema "tenant_42" and store the entire baggage map.
+
 ### 2. Set Environment Parameters
 If you're using .env, define the app name:
 
