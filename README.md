@@ -65,19 +65,27 @@ Decorate your http client in your service configuration:
 ```yaml
 services:
     baggage_aware_payment_http_client:
-      class: Macpaw\SchemaContextBundle\HttpClient\BaggageAwareHttpClient
-      decorates: payment_http_client #http client to decorate
-      arguments:
-        - '@baggage_aware_payment_http_client.inner'
-        - '@Macpaw\SchemaContextBundle\Service\BaggageSchemaResolver'
-        - '@Macpaw\SchemaContextBundle\Service\BaggageCodec'
+        class: Macpaw\SchemaContextBundle\HttpClient\BaggageAwareHttpClient
+        decorates: payment_http_client #http client to decorate
+        arguments:
+            - '@baggage_aware_payment_http_client.inner'
+```
+
+### A Note on Testing
+
+If you are replacing or mocking HTTP clients in your test environment, for example, using a library like [`macpaw/extended-mock-http-client`](https://github.com/MacPaw/extended_mock_http_client), you need to disable the `BaggageAwareHttpClient` decoration.
+
+```yaml
+when@test:
+    services:
+        baggage_aware_payment_http_client:
+            class: Macpaw\SchemaContextBundle\HttpClient\BaggageAwareHttpClient
 ```
 
 ## Messenger Integration
 The bundle provides a middleware that automatically:
 
 * Adds a BaggageSchemaStamp to dispatched messages
-
 * Restores the schema and baggage context on message handling
 
 Enable the middleware in your `messenger.yaml`:
@@ -88,7 +96,7 @@ framework:
         buses:
             messenger.bus.default:
                 middleware:
-                    - Macpaw\SchemaContextBundle\Messenger\Middleware\BaggageMiddleware
+                    - Macpaw\SchemaContextBundle\Messenger\Middleware\BaggageSchemaMiddleware
 ```
 
 ## Optional: Monolog Integration
