@@ -93,8 +93,7 @@ final class DoctrineTransportFactoryDecoratorTest extends TestCase
                     self::assertEquals('"test_schema"."messenger_messages"', $options['table_name']);
 
                     return true;
-                },
-                ),
+                }),
             );
 
         $decorator->createTransport('', [], $this->createMock(SerializerInterface::class));

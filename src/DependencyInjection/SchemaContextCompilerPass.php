@@ -28,10 +28,10 @@ final class SchemaContextCompilerPass implements CompilerPassInterface
         $def->setPublic(false);
 
         // Decorate the *target* id; explicit inner id is "<decorator>.inner"
-        $def->setDecoratedService(self::TARGET_ID, self::DECORATOR_ID.'.inner');
+        $def->setDecoratedService(self::TARGET_ID, self::DECORATOR_ID . '.inner');
 
         // Inject the inner/original factory + your resolver
-        $def->setArgument('$decoratedFactory', new Reference(self::DECORATOR_ID.'.inner'));
+        $def->setArgument('$decoratedFactory', new Reference(self::DECORATOR_ID . '.inner'));
         $def->setArgument('$baggageSchemaResolver', new Reference(BaggageSchemaResolver::class));
         $def->setArgument('$defaultSchema', $container->getParameter('schema_context.default_schema'));
 
