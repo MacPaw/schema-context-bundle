@@ -30,6 +30,9 @@
             "dealerdirect/phpcodesniffer-composer-installer": true
         }
     },
+    "suggest": {
+        "symfony/doctrine-messenger": "Allow use doctrine as messenger transport"
+    },
     "scripts": {
         "composer-validate": [
             "composer validate"
