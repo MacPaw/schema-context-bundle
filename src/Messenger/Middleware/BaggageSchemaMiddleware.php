@@ -10,6 +10,7 @@ use Macpaw\SchemaContextBundle\Service\BaggageSchemaResolver;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Middleware\MiddlewareInterface;
 use Symfony\Component\Messenger\Middleware\StackInterface;
+use Symfony\Component\Messenger\Stamp\ReceivedStamp;
 
 class BaggageSchemaMiddleware implements MiddlewareInterface
 {
@@ -23,25 +24,27 @@ class BaggageSchemaMiddleware implements MiddlewareInterface
     {
         $stamp = $envelope->last(BaggageSchemaStamp::class);
 
-        if ($stamp instanceof BaggageSchemaStamp) {
-            $this->baggageSchemaResolver
-                ->setSchema($stamp->schema)
-                ->setBaggage($this->baggageCodec->decode($stamp->baggage));
-
-            $result = $stack->next()->handle($envelope, $stack);
-        } else {
-            $schema = $this->baggageSchemaResolver->getSchema();
-            $baggage = $this->baggageCodec->encode($this->baggageSchemaResolver->getBaggage() ?? []);
-
-            if ($schema !== null && $schema !== '') {
-                $envelope = $envelope->with(new BaggageSchemaStamp($schema, $baggage));
+        if ($envelope->last(ReceivedStamp::class)) {
+            if ($stamp instanceof BaggageSchemaStamp) {
+                $this->baggageSchemaResolver
+                    ->setSchema($stamp->schema)
+                    ->setBaggage($this->baggageCodec->decode($stamp->baggage));
             }
 
             $result = $stack->next()->handle($envelope, $stack);
+
+            $this->baggageSchemaResolver->reset();
+
+            return $result;
         }
 
-        $this->baggageSchemaResolver->reset();
+        $schema = $this->baggageSchemaResolver->getSchema();
+        $baggage = $this->baggageCodec->encode($this->baggageSchemaResolver->getBaggage() ?? []);
 
-        return $result;
+        if ($schema !== null && $schema !== '') {
+            $envelope = $envelope->with(new BaggageSchemaStamp($schema, $baggage));
+        }
+
+        return $stack->next()->handle($envelope, $stack);
     }
 }
