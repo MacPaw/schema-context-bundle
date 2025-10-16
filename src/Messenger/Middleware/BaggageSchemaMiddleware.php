@@ -10,6 +10,7 @@ use Macpaw\SchemaContextBundle\Service\BaggageSchemaResolver;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Middleware\MiddlewareInterface;
 use Symfony\Component\Messenger\Middleware\StackInterface;
+use Symfony\Component\Messenger\Stamp\ReceivedStamp;
 
 class BaggageSchemaMiddleware implements MiddlewareInterface
 {
@@ -24,12 +25,18 @@ class BaggageSchemaMiddleware implements MiddlewareInterface
     {
         $stamp = $envelope->last(BaggageSchemaStamp::class);
 
-        if ($stamp instanceof BaggageSchemaStamp) {
-            $this->baggageSchemaResolver
-                ->setSchema($stamp->schema)
-                ->setBaggage($this->baggageCodec->decode($stamp->baggage));
+        if ($envelope->last(ReceivedStamp::class)) {
+            if ($stamp instanceof BaggageSchemaStamp) {
+                $this->baggageSchemaResolver
+                    ->setSchema($stamp->schema)
+                    ->setBaggage($this->baggageCodec->decode($stamp->baggage));
+            }
 
-            return $stack->next()->handle($envelope, $stack);
+            $result = $stack->next()->handle($envelope, $stack);
+
+            $this->baggageSchemaResolver->reset();
+
+            return $result;
         }
 
         $schema = $this->baggageSchemaResolver->getSchema();

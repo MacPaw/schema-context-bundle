@@ -41,4 +41,10 @@ class BaggageSchemaResolver
     {
         return $this->schema;
     }
+
+    public function reset(): void
+    {
+        $this->baggage = null;
+        $this->schema = null;
+    }
 }
