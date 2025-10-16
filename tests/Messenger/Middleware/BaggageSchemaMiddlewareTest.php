@@ -25,7 +25,7 @@ class BaggageSchemaMiddlewareTest extends TestCase
 
         $resolver = new BaggageSchemaResolver();
         $baggageCodec = new BaggageCodec();
-        $middleware = new BaggageSchemaMiddleware($resolver, $baggageCodec);
+        $middleware = new BaggageSchemaMiddleware($resolver, $baggageCodec, 'public');
         $stamp = new BaggageSchemaStamp($schema, $rawBaggage);
         $envelope = (new Envelope(new \stdClass()))->with($stamp);
         $stack = $this->createMock(StackInterface::class);
@@ -58,7 +58,7 @@ class BaggageSchemaMiddlewareTest extends TestCase
             ->setSchema($schema)
             ->setBaggage($baggage);
         $baggageCodec = new BaggageCodec();
-        $middleware = new BaggageSchemaMiddleware($resolver, $baggageCodec);
+        $middleware = new BaggageSchemaMiddleware($resolver, $baggageCodec, 'public');
         $originalEnvelope = new Envelope(new \stdClass());
         $stack = $this->createMock(StackInterface::class);
 
@@ -80,5 +80,33 @@ class BaggageSchemaMiddlewareTest extends TestCase
         $this->assertInstanceOf(BaggageSchemaStamp::class, $stamp);
         $this->assertSame($schema, $stamp->schema);
         $this->assertSame($rawBaggage, $stamp->baggage);
+    }
+
+    public function testSchemaStampIsDefaultSchema(): void
+    {
+        $resolver = new BaggageSchemaResolver();
+        $baggageCodec = new BaggageCodec();
+        $middleware = new BaggageSchemaMiddleware($resolver, $baggageCodec, 'public');
+        $originalEnvelope = new Envelope(new \stdClass());
+        $stack = $this->createMock(StackInterface::class);
+
+        $stack->expects($this->once())
+            ->method('next')
+            ->willReturnCallback(function () {
+                return new class implements MiddlewareInterface {
+                    public function handle(Envelope $envelope, StackInterface $stack): Envelope
+                    {
+                        return $envelope;
+                    }
+                };
+            });
+
+        $resultEnvelope = $middleware->handle($originalEnvelope, $stack);
+
+        $stamp = $resultEnvelope->last(BaggageSchemaStamp::class);
+
+        $this->assertInstanceOf(BaggageSchemaStamp::class, $stamp);
+        $this->assertSame('public', $stamp->schema);
+        $this->assertSame('', $stamp->baggage);
     }
 }
