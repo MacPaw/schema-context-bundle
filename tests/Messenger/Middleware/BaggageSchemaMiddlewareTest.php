@@ -12,6 +12,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Middleware\MiddlewareInterface;
 use Symfony\Component\Messenger\Middleware\StackInterface;
+use Symfony\Component\Messenger\Stamp\ReceivedStamp;
 
 class BaggageSchemaMiddlewareTest extends TestCase
 {
@@ -28,6 +29,7 @@ class BaggageSchemaMiddlewareTest extends TestCase
         $middleware = new BaggageSchemaMiddleware($resolver, $baggageCodec, 'public');
         $stamp = new BaggageSchemaStamp($schema, $rawBaggage);
         $envelope = (new Envelope(new \stdClass()))->with($stamp);
+        $envelope = $envelope->with(new ReceivedStamp('async'));
         $stack = $this->createMock(StackInterface::class);
         $nextMiddleware = new class implements MiddlewareInterface {
             public function handle(Envelope $envelope, StackInterface $stack): Envelope
