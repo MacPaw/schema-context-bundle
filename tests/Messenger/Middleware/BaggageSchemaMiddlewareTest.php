@@ -32,7 +32,13 @@ class BaggageSchemaMiddlewareTest extends TestCase
         $nextMiddleware = new class implements MiddlewareInterface {
             public function handle(Envelope $envelope, StackInterface $stack): Envelope
             {
-                return $envelope;
+                /** @var BaggageSchemaStamp|null $stamp */
+                $stamp = $envelope->last(BaggageSchemaStamp::class);
+
+                return new Envelope((object) [
+                    'schema' => $stamp?->schema,
+                    'baggage' => $stamp?->baggage,
+                ]);
             }
         };
 
@@ -40,10 +46,14 @@ class BaggageSchemaMiddlewareTest extends TestCase
             ->method('next')
             ->willReturn($nextMiddleware);
 
-        $middleware->handle($envelope, $stack);
+        $envelope = $middleware->handle($envelope, $stack);
 
-        $this->assertSame($schema, $resolver->getSchema());
-        $this->assertSame($baggage, $resolver->getBaggage());
+        $result = (array) $envelope->getMessage();
+
+        $this->assertSame($schema, $result['schema']);
+        $this->assertSame($baggage, $baggageCodec->decode($result['baggage']));
+        $this->assertNull($resolver->getSchema());
+        $this->assertNull($resolver->getBaggage());
     }
 
     public function testSchemaStampIsInjectedIfMissing(): void
