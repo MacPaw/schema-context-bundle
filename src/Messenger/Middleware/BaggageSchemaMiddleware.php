@@ -42,7 +42,6 @@ class BaggageSchemaMiddleware implements MiddlewareInterface
         $schema = $this->baggageSchemaResolver->getSchema();
         $baggage = $this->baggageCodec->encode($this->baggageSchemaResolver->getBaggage() ?? []);
 
-        var_dump($schema, $baggage);
         if ($schema !== null && $schema !== '') {
             $envelope = $envelope->with(new BaggageSchemaStamp($schema, $baggage));
         } else {
