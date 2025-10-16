@@ -29,19 +29,19 @@ class BaggageSchemaMiddleware implements MiddlewareInterface
                 ->setBaggage($this->baggageCodec->decode($stamp->baggage));
 
             $result = $stack->next()->handle($envelope, $stack);
+        } else {
+            $schema = $this->baggageSchemaResolver->getSchema();
+            $baggage = $this->baggageCodec->encode($this->baggageSchemaResolver->getBaggage() ?? []);
 
-            $this->baggageSchemaResolver->reset();
+            if ($schema !== null && $schema !== '') {
+                $envelope = $envelope->with(new BaggageSchemaStamp($schema, $baggage));
+            }
 
-            return $result;
+            $result = $stack->next()->handle($envelope, $stack);
         }
 
-        $schema = $this->baggageSchemaResolver->getSchema();
-        $baggage = $this->baggageCodec->encode($this->baggageSchemaResolver->getBaggage() ?? []);
+        $this->baggageSchemaResolver->reset();
 
-        if ($schema !== null && $schema !== '') {
-            $envelope = $envelope->with(new BaggageSchemaStamp($schema, $baggage));
-        }
-
-        return $stack->next()->handle($envelope, $stack);
+        return $result;
     }
 }
