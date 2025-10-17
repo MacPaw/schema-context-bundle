@@ -10,12 +10,14 @@ use Macpaw\SchemaContextBundle\Service\BaggageSchemaResolver;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Middleware\MiddlewareInterface;
 use Symfony\Component\Messenger\Middleware\StackInterface;
+use Symfony\Component\Messenger\Stamp\ReceivedStamp;
 
 class BaggageSchemaMiddleware implements MiddlewareInterface
 {
     public function __construct(
         private BaggageSchemaResolver $baggageSchemaResolver,
-        private BaggageCodec $baggageCodec
+        private BaggageCodec $baggageCodec,
+        private string $defaultSchema,
     ) {
     }
 
@@ -23,10 +25,12 @@ class BaggageSchemaMiddleware implements MiddlewareInterface
     {
         $stamp = $envelope->last(BaggageSchemaStamp::class);
 
-        if ($stamp instanceof BaggageSchemaStamp) {
-            $this->baggageSchemaResolver
-                ->setSchema($stamp->schema)
-                ->setBaggage($this->baggageCodec->decode($stamp->baggage));
+        if ($envelope->last(ReceivedStamp::class)) {
+            if ($stamp instanceof BaggageSchemaStamp) {
+                $this->baggageSchemaResolver
+                    ->setSchema($stamp->schema)
+                    ->setBaggage($this->baggageCodec->decode($stamp->baggage));
+            }
 
             $result = $stack->next()->handle($envelope, $stack);
 
@@ -40,6 +44,8 @@ class BaggageSchemaMiddleware implements MiddlewareInterface
 
         if ($schema !== null && $schema !== '') {
             $envelope = $envelope->with(new BaggageSchemaStamp($schema, $baggage));
+        } else {
+            $envelope = $envelope->with(new BaggageSchemaStamp($this->defaultSchema, $baggage));
         }
 
         return $stack->next()->handle($envelope, $stack);
