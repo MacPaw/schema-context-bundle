@@ -23,5 +23,7 @@ services:
       - { name: kernel.event_subscriber }
 
   Macpaw\SchemaContextBundle\Messenger\Middleware\BaggageSchemaMiddleware:
+    arguments:
+      $defaultSchema: '%schema_context.default_schema%'
     tags:
       - { name: messenger.middleware }
