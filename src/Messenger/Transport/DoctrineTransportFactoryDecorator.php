@@ -20,26 +20,21 @@ final class DoctrineTransportFactoryDecorator implements TransportFactoryInterfa
     public function __construct(
         private readonly TransportFactoryInterface $decoratedFactory,
         private readonly BaggageSchemaResolver $baggageSchemaResolver,
-        private readonly string $defaultSchema = 'public',
     ) {
     }
 
     public function createTransport(string $dsn, array $options, SerializerInterface $serializer): TransportInterface
     {
-        // Get current schema from BaggageSchemaResolver
         $currentSchema = $this->baggageSchemaResolver->getSchema();
 
-        // If we have a schema and it's not the default 'public' schema, modify the table name
-        if ($currentSchema !== null && $currentSchema !== $this->defaultSchema) {
-            $originalTableName = sprintf(
-                '"%s"."%s"',
-                $currentSchema,
-                $options['table_name'] ?? 'messenger_messages',
-            );
+        $originalTableName = sprintf(
+            '"%s"."%s"',
+            $currentSchema,
+            $options['table_name'] ?? 'messenger_messages',
+        );
 
-            // Create transport with schema-prefixed table name
-            $options['table_name'] = $originalTableName;
-        }
+        // Create transport with schema-prefixed table name
+        $options['table_name'] = $originalTableName;
 
         // Create transport with the original factory
         return $this->decoratedFactory->createTransport($dsn, $options, $serializer);

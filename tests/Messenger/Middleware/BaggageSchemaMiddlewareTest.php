@@ -18,15 +18,19 @@ class BaggageSchemaMiddlewareTest extends TestCase
 {
     public function testSchemaIsSetFromStamp(): void
     {
+        $environmentSchema = 'default';
+        $environmentName = 'dev';
+        $schemaOverridableEnvironments = ['dev', 'test'];
+
         $schema = 'tenant1';
         $rawBaggage = 'X-Schema=tenant1';
         $baggage = [
             'X-Schema' => 'tenant1',
         ];
 
-        $resolver = new BaggageSchemaResolver();
+        $resolver = new BaggageSchemaResolver($environmentSchema, $environmentName, $schemaOverridableEnvironments);
         $baggageCodec = new BaggageCodec();
-        $middleware = new BaggageSchemaMiddleware($resolver, $baggageCodec, 'public');
+        $middleware = new BaggageSchemaMiddleware($resolver, $baggageCodec);
         $stamp = new BaggageSchemaStamp($schema, $rawBaggage);
         $envelope = (new Envelope(new \stdClass()))->with($stamp);
         $envelope = $envelope->with(new ReceivedStamp('async'));
@@ -54,23 +58,27 @@ class BaggageSchemaMiddlewareTest extends TestCase
 
         $this->assertSame($schema, $result['schema']);
         $this->assertSame($baggage, $baggageCodec->decode($result['baggage']));
-        $this->assertNull($resolver->getSchema());
+        $this->assertSame($environmentSchema, $resolver->getSchema());
         $this->assertNull($resolver->getBaggage());
     }
 
     public function testSchemaStampIsInjectedIfMissing(): void
     {
+        $environmentSchema = 'default';
+        $environmentName = 'dev';
+        $schemaOverridableEnvironments = ['dev', 'test'];
+
         $schema = 'tenant1';
         $rawBaggage = 'X-Schema=tenant1';
         $baggage = [
             'X-Schema' => 'tenant1',
         ];
-        $resolver = new BaggageSchemaResolver();
+        $resolver = new BaggageSchemaResolver($environmentSchema, $environmentName, $schemaOverridableEnvironments);
         $resolver
             ->setSchema($schema)
             ->setBaggage($baggage);
         $baggageCodec = new BaggageCodec();
-        $middleware = new BaggageSchemaMiddleware($resolver, $baggageCodec, 'public');
+        $middleware = new BaggageSchemaMiddleware($resolver, $baggageCodec);
         $originalEnvelope = new Envelope(new \stdClass());
         $stack = $this->createMock(StackInterface::class);
 
@@ -96,9 +104,13 @@ class BaggageSchemaMiddlewareTest extends TestCase
 
     public function testSchemaStampIsDefaultSchema(): void
     {
-        $resolver = new BaggageSchemaResolver();
+        $environmentSchema = 'default';
+        $environmentName = 'dev';
+        $schemaOverridableEnvironments = ['dev', 'test'];
+
+        $resolver = new BaggageSchemaResolver($environmentSchema, $environmentName, $schemaOverridableEnvironments);
         $baggageCodec = new BaggageCodec();
-        $middleware = new BaggageSchemaMiddleware($resolver, $baggageCodec, 'public');
+        $middleware = new BaggageSchemaMiddleware($resolver, $baggageCodec);
         $originalEnvelope = new Envelope(new \stdClass());
         $stack = $this->createMock(StackInterface::class);
 
@@ -118,7 +130,7 @@ class BaggageSchemaMiddlewareTest extends TestCase
         $stamp = $resultEnvelope->last(BaggageSchemaStamp::class);
 
         $this->assertInstanceOf(BaggageSchemaStamp::class, $stamp);
-        $this->assertSame('public', $stamp->schema);
-        $this->assertSame('', $stamp->baggage);
+        $this->assertSame($environmentSchema, $stamp->schema);
+        $this->assertNull($stamp->baggage);
     }
 }

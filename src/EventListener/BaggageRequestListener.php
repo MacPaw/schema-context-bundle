@@ -16,10 +16,6 @@ class BaggageRequestListener implements EventSubscriberInterface
         private BaggageSchemaResolver $baggageSchemaResolver,
         private BaggageCodec $baggageCodec,
         private string $schemaRequestHeader,
-        private string $defaultSchema,
-        private string $appName,
-        /** @var string[] */
-        private array $allowedAppNames,
     ) {
     }
 
@@ -30,30 +26,18 @@ class BaggageRequestListener implements EventSubscriberInterface
 
     public function onKernelRequest(RequestEvent $event): void
     {
-        if (!$this->isAllowedAppName()) {
-            return;
-        }
-
         $request = $event->getRequest();
-        $baggage = $request->headers->get('baggage');
+        $headerBaggage = $request->headers->get('baggage');
 
+        $baggage = null;
         $schema = null;
-        if ($baggage) {
-            $baggage = $this->baggageCodec->decode($baggage);
-            $this->baggageSchemaResolver->setBaggage($baggage);
 
+        if ($headerBaggage) {
+            $baggage = $this->baggageCodec->decode($headerBaggage);
             $schema = $baggage[$this->schemaRequestHeader] ?? null;
         }
 
-        if ($schema !== null && $schema !== '') {
-            $this->baggageSchemaResolver->setSchema($schema);
-        } else {
-            $this->baggageSchemaResolver->setSchema($this->defaultSchema);
-        }
-    }
-
-    private function isAllowedAppName(): bool
-    {
-        return in_array($this->appName, $this->allowedAppNames, true);
+        $this->baggageSchemaResolver->setBaggage($baggage);
+        $this->baggageSchemaResolver->setSchema($schema);
     }
 }

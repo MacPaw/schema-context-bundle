@@ -17,7 +17,6 @@ class BaggageSchemaMiddleware implements MiddlewareInterface
     public function __construct(
         private BaggageSchemaResolver $baggageSchemaResolver,
         private BaggageCodec $baggageCodec,
-        private string $defaultSchema,
     ) {
     }
 
@@ -29,7 +28,7 @@ class BaggageSchemaMiddleware implements MiddlewareInterface
             if ($stamp instanceof BaggageSchemaStamp) {
                 $this->baggageSchemaResolver
                     ->setSchema($stamp->schema)
-                    ->setBaggage($this->baggageCodec->decode($stamp->baggage));
+                    ->setBaggage($stamp->baggage === null ? null : $this->baggageCodec->decode($stamp->baggage));
             }
 
             $result = $stack->next()->handle($envelope, $stack);
@@ -40,13 +39,11 @@ class BaggageSchemaMiddleware implements MiddlewareInterface
         }
 
         $schema = $this->baggageSchemaResolver->getSchema();
-        $baggage = $this->baggageCodec->encode($this->baggageSchemaResolver->getBaggage() ?? []);
+        $baggage = $this->baggageSchemaResolver->getBaggage() === null
+            ? null
+            : $this->baggageCodec->encode($this->baggageSchemaResolver->getBaggage());
 
-        if ($schema !== null && $schema !== '') {
-            $envelope = $envelope->with(new BaggageSchemaStamp($schema, $baggage));
-        } else {
-            $envelope = $envelope->with(new BaggageSchemaStamp($this->defaultSchema, $baggage));
-        }
+        $envelope = $envelope->with(new BaggageSchemaStamp($schema, $baggage));
 
         return $stack->next()->handle($envelope, $stack);
     }
