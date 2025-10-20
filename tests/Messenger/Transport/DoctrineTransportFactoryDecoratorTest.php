@@ -75,8 +75,12 @@ final class DoctrineTransportFactoryDecoratorTest extends TestCase
 
     public function testSchemaIsOverride(): void
     {
+        $environmentSchema = 'default';
+        $environmentName = 'dev';
+        $schemaOverridableEnvironments = ['dev', 'test'];
+
         $doctrineTransportMock = $this->createMock(TransportFactoryInterface::class);
-        $baggage = new BaggageSchemaResolver();
+        $baggage = new BaggageSchemaResolver($environmentSchema, $environmentName, $schemaOverridableEnvironments);
         $baggage->setSchema('test_schema');
 
         $decorator = new DoctrineTransportFactoryDecorator(
@@ -101,14 +105,17 @@ final class DoctrineTransportFactoryDecoratorTest extends TestCase
 
     public function testSchemaIsDefault(): void
     {
+        $environmentSchema = 'default';
+        $environmentName = 'dev';
+        $schemaOverridableEnvironments = ['dev', 'test'];
+
         $doctrineTransportMock = $this->createMock(TransportFactoryInterface::class);
-        $baggage = new BaggageSchemaResolver();
+        $baggage = new BaggageSchemaResolver($environmentSchema, $environmentName, $schemaOverridableEnvironments);
         $baggage->setSchema('default');
 
         $decorator = new DoctrineTransportFactoryDecorator(
             $doctrineTransportMock,
             $baggage,
-            'default',
         );
 
         $doctrineTransportMock->expects(self::once())
@@ -117,7 +124,7 @@ final class DoctrineTransportFactoryDecoratorTest extends TestCase
                 self::equalTo(''),
                 self::callback(function (array $options): bool {
                     self::assertArrayHasKey('table_name', $options);
-                    self::assertEquals('messenger_messages', $options['table_name']);
+                    self::assertEquals('"default"."messenger_messages"', $options['table_name']);
 
                     return true;
                 }),

@@ -16,15 +16,16 @@ class BaggageRequestListenerTest extends TestCase
 {
     public function testBaggageFromHeaderIsSet(): void
     {
-        $resolver = new BaggageSchemaResolver();
+        $environmentSchema = 'default';
+        $environmentName = 'dev';
+        $schemaOverridableEnvironments = ['dev', 'test'];
+
+        $resolver = new BaggageSchemaResolver($environmentSchema, $environmentName, $schemaOverridableEnvironments);
         $baggageCodec = new BaggageCodec();
         $listener = new BaggageRequestListener(
             $resolver,
             $baggageCodec,
             'X-Schema',
-            'default',
-            'test-app',
-            ['test-app'],
         );
 
         $request = new Request([], [], [], [], [], ['HTTP_BAGGAGE' => 'X-Schema=tenant1']);
@@ -41,15 +42,16 @@ class BaggageRequestListenerTest extends TestCase
 
     public function testBaggageFromHeaderIsSetWithMultiplyParameters(): void
     {
-        $resolver = new BaggageSchemaResolver();
+        $environmentSchema = 'default';
+        $environmentName = 'dev';
+        $schemaOverridableEnvironments = ['dev', 'test'];
+
+        $resolver = new BaggageSchemaResolver($environmentSchema, $environmentName, $schemaOverridableEnvironments);
         $baggageCodec = new BaggageCodec();
         $listener = new BaggageRequestListener(
             $resolver,
             $baggageCodec,
             'X-Schema',
-            'default',
-            'test-app',
-            ['test-app'],
         );
 
         $request = new Request([], [], [], [], [], ['HTTP_BAGGAGE' => 'X-Schema= tenant1 ,test , foo=bar']);
@@ -68,15 +70,16 @@ class BaggageRequestListenerTest extends TestCase
 
     public function testDefaultSchemaIsUsedIfHeaderMissing(): void
     {
-        $resolver = new BaggageSchemaResolver();
+        $environmentSchema = 'default';
+        $environmentName = 'dev';
+        $schemaOverridableEnvironments = ['dev', 'test'];
+
+        $resolver = new BaggageSchemaResolver($environmentSchema, $environmentName, $schemaOverridableEnvironments);
         $baggageCodec = new BaggageCodec();
         $listener = new BaggageRequestListener(
             $resolver,
             $baggageCodec,
             'X-Schema',
-            'fallback',
-            'test-app',
-            ['test-app'],
         );
 
         $request = new Request();
@@ -85,7 +88,34 @@ class BaggageRequestListenerTest extends TestCase
 
         $listener->onKernelRequest($event);
 
-        self::assertSame('fallback', $resolver->getSchema());
+        self::assertSame('default', $resolver->getSchema());
         self::assertNull($resolver->getBaggage());
+    }
+
+    // TODO!!
+    public function testFail(): void
+    {
+        $environmentSchema = 'default';
+        $environmentName = 'dev';
+        $schemaOverridableEnvironments = ['dev', 'test'];
+
+        $resolver = new BaggageSchemaResolver($environmentSchema, $environmentName, $schemaOverridableEnvironments);
+        $baggageCodec = new BaggageCodec();
+        $listener = new BaggageRequestListener(
+            $resolver,
+            $baggageCodec,
+            'X-Schema',
+        );
+
+        $request = new Request([], [], [], [], [], ['HTTP_BAGGAGE' => 'X-Schema=tenant1']);
+        $kernel = $this->createMock(HttpKernelInterface::class);
+        $event = new RequestEvent($kernel, $request, HttpKernelInterface::MAIN_REQUEST);
+
+        $listener->onKernelRequest($event);
+
+        self::assertSame('tenant1', $resolver->getSchema());
+        self::assertSame([
+            'X-Schema' => 'tenant1',
+        ], $resolver->getBaggage());
     }
 }

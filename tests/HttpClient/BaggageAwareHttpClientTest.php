@@ -24,6 +24,15 @@ class BaggageAwareHttpClientTest extends TestCase
         array $arrayBaggage,
         string $expectedSentBaggage
     ): void {
+        $environmentSchema = 'default';
+        $environmentName = 'dev';
+        $schemaOverridableEnvironments = ['dev', 'test'];
+        $baggageSchemaResolver = new BaggageSchemaResolver(
+            $environmentSchema,
+            $environmentName,
+            $schemaOverridableEnvironments
+        );
+
         $mockClient = $this->createMock(HttpClientInterface::class);
         $mockClient
             ->expects($this->once())
@@ -40,7 +49,7 @@ class BaggageAwareHttpClientTest extends TestCase
             )
             ->willReturn(new MockResponse('OK'));
 
-        $baggageSchemaResolver = (new BaggageSchemaResolver())->setBaggage($arrayBaggage);
+        $baggageSchemaResolver->setBaggage($arrayBaggage);
         $baggageCodec = new BaggageCodec();
 
         $client = new BaggageAwareHttpClient(

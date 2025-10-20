@@ -8,7 +8,7 @@ use Symfony\Component\Messenger\Stamp\StampInterface;
 
 class BaggageSchemaStamp implements StampInterface
 {
-    public function __construct(public string $schema, public string $baggage)
+    public function __construct(public ?string $schema, public ?string $baggage)
     {
     }
 }

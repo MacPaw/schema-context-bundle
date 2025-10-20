@@ -33,7 +33,6 @@ final class SchemaContextCompilerPass implements CompilerPassInterface
         // Inject the inner/original factory + your resolver
         $def->setArgument('$decoratedFactory', new Reference(self::DECORATOR_ID . '.inner'));
         $def->setArgument('$baggageSchemaResolver', new Reference(BaggageSchemaResolver::class));
-        $def->setArgument('$defaultSchema', $container->getParameter('schema_context.default_schema'));
 
         $container->setDefinition(self::DECORATOR_ID, $def);
     }
