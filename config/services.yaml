@@ -24,5 +24,7 @@ services:
       - { name: kernel.event_subscriber }
 
   Macpaw\SchemaContextBundle\Messenger\Middleware\BaggageSchemaMiddleware:
+    arguments:
+      $sendersLocator: '@messenger.senders_locator'
     tags:
       - { name: messenger.middleware }
