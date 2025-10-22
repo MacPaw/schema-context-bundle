@@ -11,10 +11,13 @@ use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Middleware\MiddlewareInterface;
 use Symfony\Component\Messenger\Middleware\StackInterface;
 use Symfony\Component\Messenger\Stamp\ReceivedStamp;
+use Symfony\Component\Messenger\Transport\Sender\SendersLocatorInterface;
+use Symfony\Component\Messenger\Transport\Sync\SyncTransport;
 
 class BaggageSchemaMiddleware implements MiddlewareInterface
 {
     public function __construct(
+        private SendersLocatorInterface $sendersLocator,
         private BaggageSchemaResolver $baggageSchemaResolver,
         private BaggageCodec $baggageCodec,
     ) {
@@ -24,7 +27,7 @@ class BaggageSchemaMiddleware implements MiddlewareInterface
     {
         $stamp = $envelope->last(BaggageSchemaStamp::class);
 
-        if ($envelope->last(ReceivedStamp::class)) {
+        if ($this->isWorker($envelope) && !$this->isSyncTransport($envelope)) {
             if ($stamp instanceof BaggageSchemaStamp) {
                 $this->baggageSchemaResolver
                     ->setSchema($stamp->schema)
@@ -46,5 +49,21 @@ class BaggageSchemaMiddleware implements MiddlewareInterface
         $envelope = $envelope->with(new BaggageSchemaStamp($schema, $baggage));
 
         return $stack->next()->handle($envelope, $stack);
+    }
+
+    private function isWorker(Envelope $envelope): bool
+    {
+        return (bool) $envelope->last(ReceivedStamp::class);
+    }
+
+    private function isSyncTransport(Envelope $envelope): bool
+    {
+        foreach ($this->sendersLocator->getSenders($envelope) as $sender) {
+            if ($sender instanceof SyncTransport) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
