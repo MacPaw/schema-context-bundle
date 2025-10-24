@@ -5,6 +5,10 @@ services:
     public: false
 
   Macpaw\SchemaContextBundle\Service\BaggageSchemaResolver:
+    arguments:
+      $environmentSchema: '%schema_context.environment_schema%'
+      $environmentName: '%schema_context.environment_name%'
+      $schemaOverridableEnvironments: '%schema_context.overridable_environments%'
     public: true
     shared: true
 
@@ -16,12 +20,11 @@ services:
     arguments:
       $baggageSchemaResolver: '@Macpaw\SchemaContextBundle\Service\BaggageSchemaResolver'
       $schemaRequestHeader: '%schema_context.header_name%'
-      $defaultSchema: '%schema_context.default_schema%'
-      $appName: '%schema_context.app_name%'
-      $allowedAppNames: '%schema_context.allowed_app_names%'
     tags:
       - { name: kernel.event_subscriber }
 
   Macpaw\SchemaContextBundle\Messenger\Middleware\BaggageSchemaMiddleware:
+    arguments:
+      $sendersLocator: '@messenger.senders_locator'
     tags:
       - { name: messenger.middleware }
