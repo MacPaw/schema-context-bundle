@@ -45,7 +45,7 @@ class BaggageRequestListener implements EventSubscriberInterface
             $schema = $baggage[$this->schemaRequestHeader] ?? null;
         }
 
-        if ($schema !== null && $schema !== '') {
+        if (is_string($schema) && trim($schema) !== '') {
             $this->baggageSchemaResolver->setSchema($schema);
         } else {
             $this->baggageSchemaResolver->setSchema($this->defaultSchema);
