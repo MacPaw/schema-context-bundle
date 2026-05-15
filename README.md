@@ -1,5 +1,7 @@
 # Schema Context Bundle
 
+![Schema Context Bundle](.github/header.png)
+
 The **SchemaContextBundle** provides a robust way to manage dynamic schema context across your Symfony application, especially useful for multi-tenant setups. It extracts schema information from W3C standard baggage headers (or Symfony Messenger Stamps), validates schema changes based on environment configuration, and propagates schema context throughout your application, including HTTP clients and Symfony Messenger queues.
 
 ---
