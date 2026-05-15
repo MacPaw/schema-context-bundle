@@ -34,9 +34,11 @@ class BaggageSchemaMiddleware implements MiddlewareInterface
                     ->setBaggage($stamp->baggage === null ? null : $this->baggageCodec->decode($stamp->baggage));
             }
 
-            $result = $stack->next()->handle($envelope, $stack);
-
-            $this->baggageSchemaResolver->reset();
+            try {
+                $result = $stack->next()->handle($envelope, $stack);
+            } finally {
+                $this->baggageSchemaResolver->reset();
+            }
 
             return $result;
         }
