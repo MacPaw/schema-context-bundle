@@ -28,13 +28,13 @@ class BaggageSchemaMiddleware implements MiddlewareInterface
         $stamp = $envelope->last(BaggageSchemaStamp::class);
 
         if ($this->isWorker($envelope) && !$this->isSyncTransport($envelope)) {
-            if ($stamp instanceof BaggageSchemaStamp) {
-                $this->baggageSchemaResolver
-                    ->setSchema($stamp->schema)
-                    ->setBaggage($stamp->baggage === null ? null : $this->baggageCodec->decode($stamp->baggage));
-            }
-
             try {
+                if ($stamp instanceof BaggageSchemaStamp) {
+                    $this->baggageSchemaResolver
+                        ->setSchema($stamp->schema)
+                        ->setBaggage($stamp->baggage === null ? null : $this->baggageCodec->decode($stamp->baggage));
+                }
+
                 $result = $stack->next()->handle($envelope, $stack);
             } finally {
                 $this->baggageSchemaResolver->reset();
