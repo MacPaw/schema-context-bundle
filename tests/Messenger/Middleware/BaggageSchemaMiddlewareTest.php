@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Macpaw\SchemaContextBundle\Tests\Messenger\Middleware;
 
+use Macpaw\SchemaContextBundle\Logger\DebugLogger;
 use Macpaw\SchemaContextBundle\Messenger\Middleware\BaggageSchemaMiddleware;
 use Macpaw\SchemaContextBundle\Messenger\Stamp\BaggageSchemaStamp;
 use Macpaw\SchemaContextBundle\Service\BaggageCodec;
@@ -29,10 +30,21 @@ class BaggageSchemaMiddlewareTest extends TestCase
             'X-Schema' => 'tenant1',
         ];
 
+        $logger = new DebugLogger();
         $sendersLocator = $this->createMock(SendersLocatorInterface::class);
-        $resolver = new BaggageSchemaResolver($environmentSchema, $environmentName, $schemaOverridableEnvironments);
+        $resolver = new BaggageSchemaResolver(
+            $environmentSchema,
+            $environmentName,
+            $schemaOverridableEnvironments,
+            $logger,
+        );
         $baggageCodec = new BaggageCodec();
-        $middleware = new BaggageSchemaMiddleware($sendersLocator, $resolver, $baggageCodec);
+        $middleware = new BaggageSchemaMiddleware(
+            $sendersLocator,
+            $resolver,
+            $baggageCodec,
+            $logger,
+        );
         $stamp = new BaggageSchemaStamp($schema, $rawBaggage);
         $envelope = (new Envelope(new \stdClass()))->with($stamp);
         $envelope = $envelope->with(new ReceivedStamp('async'));
@@ -76,13 +88,24 @@ class BaggageSchemaMiddlewareTest extends TestCase
             'X-Schema' => 'tenant1',
         ];
 
+        $logger = new DebugLogger();
         $sendersLocator = $this->createMock(SendersLocatorInterface::class);
-        $resolver = new BaggageSchemaResolver($environmentSchema, $environmentName, $schemaOverridableEnvironments);
+        $resolver = new BaggageSchemaResolver(
+            $environmentSchema,
+            $environmentName,
+            $schemaOverridableEnvironments,
+            $logger,
+        );
         $resolver
             ->setSchema($schema)
             ->setBaggage($baggage);
         $baggageCodec = new BaggageCodec();
-        $middleware = new BaggageSchemaMiddleware($sendersLocator, $resolver, $baggageCodec);
+        $middleware = new BaggageSchemaMiddleware(
+            $sendersLocator,
+            $resolver,
+            $baggageCodec,
+            $logger,
+        );
         $originalEnvelope = new Envelope(new \stdClass());
         $stack = $this->createMock(StackInterface::class);
 
@@ -112,10 +135,21 @@ class BaggageSchemaMiddlewareTest extends TestCase
         $environmentName = 'dev';
         $schemaOverridableEnvironments = ['dev', 'test'];
 
+        $logger = new DebugLogger();
         $sendersLocator = $this->createMock(SendersLocatorInterface::class);
-        $resolver = new BaggageSchemaResolver($environmentSchema, $environmentName, $schemaOverridableEnvironments);
+        $resolver = new BaggageSchemaResolver(
+            $environmentSchema,
+            $environmentName,
+            $schemaOverridableEnvironments,
+            $logger,
+        );
         $baggageCodec = new BaggageCodec();
-        $middleware = new BaggageSchemaMiddleware($sendersLocator, $resolver, $baggageCodec);
+        $middleware = new BaggageSchemaMiddleware(
+            $sendersLocator,
+            $resolver,
+            $baggageCodec,
+            $logger,
+        );
         $originalEnvelope = new Envelope(new \stdClass());
         $stack = $this->createMock(StackInterface::class);
 

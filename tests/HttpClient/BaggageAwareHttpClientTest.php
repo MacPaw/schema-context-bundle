@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Macpaw\SchemaContextBundle\Tests\HttpClient;
 
 use Macpaw\SchemaContextBundle\HttpClient\BaggageAwareHttpClient;
+use Macpaw\SchemaContextBundle\Logger\DebugLogger;
 use Macpaw\SchemaContextBundle\Service\BaggageCodec;
 use Macpaw\SchemaContextBundle\Service\BaggageSchemaResolver;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -27,10 +28,13 @@ class BaggageAwareHttpClientTest extends TestCase
         $environmentSchema = 'default';
         $environmentName = 'dev';
         $schemaOverridableEnvironments = ['dev', 'test'];
+
+        $logger = new DebugLogger();
         $baggageSchemaResolver = new BaggageSchemaResolver(
             $environmentSchema,
             $environmentName,
-            $schemaOverridableEnvironments
+            $schemaOverridableEnvironments,
+            $logger,
         );
 
         $mockClient = $this->createMock(HttpClientInterface::class);
@@ -56,6 +60,7 @@ class BaggageAwareHttpClientTest extends TestCase
             $mockClient,
             $baggageSchemaResolver,
             $baggageCodec,
+            $logger,
         );
 
         $response = $client->request('GET', 'https://api.example.com/test', [

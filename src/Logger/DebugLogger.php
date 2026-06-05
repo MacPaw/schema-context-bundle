@@ -1,0 +1,80 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Macpaw\SchemaContextBundle\Logger;
+
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
+
+class DebugLogger
+{
+    private readonly LoggerInterface $logger;
+
+    public function __construct(
+        LoggerInterface|null $logger = null,
+    ) {
+        $this->logger = $logger ?? new NullLogger();
+    }
+
+    public function log(string $message, ?array $baggage = null, ?string $schema = null): void
+    {
+        $this->logger->info(
+            'schema_context_' . $message,
+            [
+                'schema' => $schema,
+                'baggage' => $baggage,
+            ]
+        );
+    }
+
+    public function logInfoFromRequest(array|null $baggage, string|null $schema): void
+    {
+        $this->log('info_from_request', $baggage, $schema);
+    }
+
+    public function logHttpRequest(array $baggage): void
+    {
+        $this->log('http_request', $baggage);
+    }
+
+    public function logSetBaggage(array|null $baggage): void
+    {
+        $this->log('set_baggage', $baggage);
+    }
+
+    public function logSetSchema(string|null $schema): void
+    {
+        $this->log('set_schema', null, $schema);
+    }
+
+    public function logInfoFromStamp(array|null $baggage, string|null $schema): void
+    {
+        $this->log('info_from_stamp', $baggage, $schema);
+    }
+
+    public function logResetWorkerAfterWorker(): void
+    {
+        $this->log('reset_worker_after_worker');
+    }
+
+    public function logCreateMessage(array|null $baggage, string|null $schema): void
+    {
+        $this->log('create_message', $baggage, $schema);
+    }
+
+    public function logApplySearchPath(string $schema, bool $isNewConnection): void
+    {
+        $this->logger->info('schema_context_apply_search_path', [
+            'schema' => $schema,
+            'is_new_connection' => $isNewConnection,
+        ]);
+    }
+
+    public function logSkipSearchPath(string $schema): void
+    {
+        $this->logger->info('schema_context_skip_search_path', [
+            'schema' => $schema,
+        ]);
+    }
+}
