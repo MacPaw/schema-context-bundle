@@ -19,6 +19,9 @@ jobs:
           - '6.4.*'
           - '7.4.*'
           - '8.0.*'
+        exclude:
+          - php: '8.3'
+            symfony-versions: '8.0.*'
         include:
           - description: 'Log Code Coverage'
             php: '8.3'
