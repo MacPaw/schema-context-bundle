@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Macpaw\SchemaContextBundle\Service;
 
 use Macpaw\SchemaContextBundle\Exception\EnvironmentSchemaMismatchException;
+use Macpaw\SchemaContextBundle\Logger\DebugLogger;
 
 class BaggageSchemaResolver
 {
@@ -22,6 +23,7 @@ class BaggageSchemaResolver
         private readonly string $environmentSchema,
         private readonly string $environmentName,
         private readonly array $schemaOverridableEnvironments,
+        private readonly DebugLogger $logger,
     ) {
         $this->isSchemaOverridableEnvironment = in_array(
             $this->environmentName,
@@ -46,6 +48,8 @@ class BaggageSchemaResolver
         if (is_array($baggage) && count($baggage) <= 0) {
             $baggage = null;
         }
+
+        $this->logger->logSetBaggage($baggage);
 
         $this->baggage = $baggage;
 
@@ -73,6 +77,8 @@ class BaggageSchemaResolver
                 $this->schemaOverridableEnvironments,
             );
         }
+
+        $this->logger->logSetSchema($schema);
 
         $this->schema = $schema;
 

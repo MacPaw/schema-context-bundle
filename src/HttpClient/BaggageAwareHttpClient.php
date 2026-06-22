@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Macpaw\SchemaContextBundle\HttpClient;
 
+use Macpaw\SchemaContextBundle\Logger\DebugLogger;
 use Macpaw\SchemaContextBundle\Service\BaggageCodec;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
@@ -16,6 +17,7 @@ class BaggageAwareHttpClient implements HttpClientInterface
         private HttpClientInterface $inner,
         private BaggageSchemaResolver $baggageSchemaResolver,
         private BaggageCodec $baggageCodec,
+        private DebugLogger $logger,
     ) {
     }
 
@@ -28,7 +30,7 @@ class BaggageAwareHttpClient implements HttpClientInterface
             ? $options['headers']
             : [];
 
-        $baggage = isset($headers['baggage'])
+        $baggage = isset($headers['baggage']) && is_string($headers['baggage'])
             ? $this->baggageCodec->decode($headers['baggage'])
             : [];
 
@@ -39,6 +41,8 @@ class BaggageAwareHttpClient implements HttpClientInterface
 
         $headers['baggage'] = $this->baggageCodec->encode($baggage);
         $options['headers'] = $headers;
+
+        $this->logger->logHttpRequest($baggage);
 
         return $this->inner->request($method, $url, $options);
     }
@@ -56,6 +60,6 @@ class BaggageAwareHttpClient implements HttpClientInterface
         $wrapped = $this->inner->withOptions($options);
 
         /** @phpstan-ignore-next-line */
-        return new self($wrapped, $this->baggageSchemaResolver, $this->baggageCodec);
+        return new self($wrapped, $this->baggageSchemaResolver, $this->baggageCodec, $this->logger);
     }
 }
