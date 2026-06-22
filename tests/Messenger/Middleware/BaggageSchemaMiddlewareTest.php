@@ -71,6 +71,7 @@ class BaggageSchemaMiddlewareTest extends TestCase
         $result = (array) $envelope->getMessage();
 
         $this->assertSame($schema, $result['schema']);
+        $this->assertIsString($result['baggage']);
         $this->assertSame($baggage, $baggageCodec->decode($result['baggage']));
         $this->assertSame($environmentSchema, $resolver->getSchema());
         $this->assertNull($resolver->getBaggage());

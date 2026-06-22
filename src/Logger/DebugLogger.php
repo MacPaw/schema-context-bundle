@@ -17,6 +17,7 @@ class DebugLogger
         $this->logger = $logger ?? new NullLogger();
     }
 
+    /** @param array<string, string|null>|null $baggage */
     public function log(string $message, ?array $baggage = null, ?string $schema = null): void
     {
         $this->logger->info(
@@ -28,16 +29,19 @@ class DebugLogger
         );
     }
 
+    /** @param array<string, string|null>|null $baggage */
     public function logInfoFromRequest(array|null $baggage, string|null $schema): void
     {
         $this->log('info_from_request', $baggage, $schema);
     }
 
+    /** @param array<string, string|null> $baggage */
     public function logHttpRequest(array $baggage): void
     {
         $this->log('http_request', $baggage);
     }
 
+    /** @param array<string, string|null>|null $baggage */
     public function logSetBaggage(array|null $baggage): void
     {
         $this->log('set_baggage', $baggage);
@@ -48,6 +52,7 @@ class DebugLogger
         $this->log('set_schema', null, $schema);
     }
 
+    /** @param array<string, string|null>|null $baggage */
     public function logInfoFromStamp(array|null $baggage, string|null $schema): void
     {
         $this->log('info_from_stamp', $baggage, $schema);
@@ -58,6 +63,7 @@ class DebugLogger
         $this->log('reset_worker_after_worker');
     }
 
+    /** @param array<string, string|null>|null $baggage */
     public function logCreateMessage(array|null $baggage, string|null $schema): void
     {
         $this->log('create_message', $baggage, $schema);

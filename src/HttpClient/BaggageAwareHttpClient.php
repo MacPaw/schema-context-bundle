@@ -30,7 +30,7 @@ class BaggageAwareHttpClient implements HttpClientInterface
             ? $options['headers']
             : [];
 
-        $baggage = isset($headers['baggage'])
+        $baggage = isset($headers['baggage']) && is_string($headers['baggage'])
             ? $this->baggageCodec->decode($headers['baggage'])
             : [];
 

@@ -45,7 +45,7 @@ class BaggageAwareHttpClientTest extends TestCase
                 'GET',
                 'https://api.example.com/test',
                 $this->callback(function (array $options) use ($expectedSentBaggage) {
-                    $headers = $options['headers'] ?? [];
+                    $headers = is_array($options['headers'] ?? null) ? $options['headers'] : [];
                     $baggage = $headers['baggage'] ?? null;
 
                     return $baggage === $expectedSentBaggage;
