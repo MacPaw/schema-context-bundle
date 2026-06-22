@@ -25,7 +25,7 @@ jobs:
         include:
           - description: 'Log Code Coverage'
             php: '8.3'
-            symfony-versions: '^7.4'
+            symfony-versions: '^6.4'
             doctrine-orm-versions: '^3.0'
             coverage: xdebug
 
