@@ -77,10 +77,11 @@ class DebugLogger
         ]);
     }
 
-    public function logSkipSearchPath(string $schema): void
+    public function logSkipSearchPath(string $schema, string|null $actualScheme): void
     {
         $this->logger->info('schema_context_skip_search_path', [
             'schema' => $schema,
+            'actualScheme' => $actualScheme,
         ]);
     }
 }
