@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Macpaw\SchemaContextBundle\EventListener;
 
+use Macpaw\SchemaContextBundle\Logger\DebugLogger;
 use Macpaw\SchemaContextBundle\Service\BaggageCodec;
 use Macpaw\SchemaContextBundle\Service\BaggageSchemaResolver;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
@@ -16,6 +17,7 @@ class BaggageRequestListener implements EventSubscriberInterface
         private BaggageSchemaResolver $baggageSchemaResolver,
         private BaggageCodec $baggageCodec,
         private string $schemaRequestHeader,
+        private DebugLogger $logger,
     ) {
     }
 
@@ -37,6 +39,7 @@ class BaggageRequestListener implements EventSubscriberInterface
             $schema = $baggage[$this->schemaRequestHeader] ?? null;
         }
 
+        $this->logger->logInfoFromRequest($baggage, $schema);
         $this->baggageSchemaResolver->setBaggage($baggage);
         $this->baggageSchemaResolver->setSchema($schema);
     }
