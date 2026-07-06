@@ -69,19 +69,41 @@ class DebugLogger
         $this->log('create_message', $baggage, $schema);
     }
 
-    public function logApplySearchPath(string $schema, bool $isNewConnection): void
+    public function logApplySearchPath(string $schema, bool $isNewConnection, bool $isInTransaction): void
     {
         $this->logger->info('schema_context_apply_search_path', [
             'schema' => $schema,
-            'is_new_connection' => $isNewConnection,
+            'isNewConnection' => $isNewConnection,
+            'inInTransaction' => $isInTransaction,
         ]);
     }
 
-    public function logSkipSearchPath(string $schema, string|null $actualScheme): void
+    public function logSkipSearchPath(string $schema, bool $isInTransaction): void
     {
         $this->logger->info('schema_context_skip_search_path', [
             'schema' => $schema,
+            'inInTransaction' => $isInTransaction,
+        ]);
+    }
+
+    public function logActualSearchPath(string|null $actualScheme): void
+    {
+        $this->logger->info('schema_context_actual_search_path', [
             'actualScheme' => $actualScheme,
+        ]);
+    }
+
+    public function logSchemaResetByTransactionRollback(string $schema): void
+    {
+        $this->logger->info('schema_context_schema_reset_by_transaction_rollback', [
+            'schema' => $schema,
+        ]);
+    }
+
+    public function logSchemaResetByConnectionClose(string $schema): void
+    {
+        $this->logger->info('schema_context_schema_reset_by_connection_close', [
+            'schema' => $schema,
         ]);
     }
 }
