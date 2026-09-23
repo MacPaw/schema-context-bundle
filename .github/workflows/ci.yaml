@@ -17,12 +17,15 @@ jobs:
         coverage: ['none']
         symfony-versions:
           - '6.4.*'
-          - '7.0.*'
-          - '7.3.*'
+          - '7.4.*'
+          - '8.0.*'
+        exclude:
+          - php: '8.3'
+            symfony-versions: '8.0.*'
         include:
           - description: 'Log Code Coverage'
             php: '8.3'
-            symfony-versions: '^7.0'
+            symfony-versions: '^6.4'
             doctrine-orm-versions: '^3.0'
             coverage: xdebug
 

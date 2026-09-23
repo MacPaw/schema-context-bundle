@@ -9,6 +9,7 @@ services:
       $environmentSchema: '%schema_context.environment_schema%'
       $environmentName: '%schema_context.environment_name%'
       $schemaOverridableEnvironments: '%schema_context.overridable_environments%'
+      $logger: '@Macpaw\SchemaContextBundle\Logger\DebugLogger'
     public: true
     shared: true
 
@@ -20,6 +21,7 @@ services:
     arguments:
       $baggageSchemaResolver: '@Macpaw\SchemaContextBundle\Service\BaggageSchemaResolver'
       $schemaRequestHeader: '%schema_context.header_name%'
+      $logger: '@Macpaw\SchemaContextBundle\Logger\DebugLogger'
     tags:
       - { name: kernel.event_subscriber }
 
@@ -28,3 +30,7 @@ services:
       $sendersLocator: '@messenger.senders_locator'
     tags:
       - { name: messenger.middleware }
+
+  Macpaw\SchemaContextBundle\Logger\DebugLogger:
+    arguments:
+      $logger: null

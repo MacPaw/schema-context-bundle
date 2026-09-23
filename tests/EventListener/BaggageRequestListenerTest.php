@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Macpaw\SchemaContextBundle\Tests\EventListener;
 
 use Macpaw\SchemaContextBundle\EventListener\BaggageRequestListener;
+use Macpaw\SchemaContextBundle\Logger\DebugLogger;
 use Macpaw\SchemaContextBundle\Service\BaggageCodec;
 use Macpaw\SchemaContextBundle\Service\BaggageSchemaResolver;
 use PHPUnit\Framework\TestCase;
@@ -20,12 +21,18 @@ class BaggageRequestListenerTest extends TestCase
         $environmentName = 'dev';
         $schemaOverridableEnvironments = ['dev', 'test'];
 
-        $resolver = new BaggageSchemaResolver($environmentSchema, $environmentName, $schemaOverridableEnvironments);
+        $resolver = new BaggageSchemaResolver(
+            $environmentSchema,
+            $environmentName,
+            $schemaOverridableEnvironments,
+            new DebugLogger(),
+        );
         $baggageCodec = new BaggageCodec();
         $listener = new BaggageRequestListener(
             $resolver,
             $baggageCodec,
             'X-Schema',
+            new DebugLogger(),
         );
 
         $request = new Request([], [], [], [], [], ['HTTP_BAGGAGE' => 'X-Schema=tenant1']);
@@ -46,12 +53,19 @@ class BaggageRequestListenerTest extends TestCase
         $environmentName = 'dev';
         $schemaOverridableEnvironments = ['dev', 'test'];
 
-        $resolver = new BaggageSchemaResolver($environmentSchema, $environmentName, $schemaOverridableEnvironments);
+        $logger = new DebugLogger();
+        $resolver = new BaggageSchemaResolver(
+            $environmentSchema,
+            $environmentName,
+            $schemaOverridableEnvironments,
+            $logger,
+        );
         $baggageCodec = new BaggageCodec();
         $listener = new BaggageRequestListener(
             $resolver,
             $baggageCodec,
             'X-Schema',
+            $logger,
         );
 
         $request = new Request([], [], [], [], [], ['HTTP_BAGGAGE' => 'X-Schema= tenant1 ,test , foo=bar']);
@@ -74,12 +88,19 @@ class BaggageRequestListenerTest extends TestCase
         $environmentName = 'dev';
         $schemaOverridableEnvironments = ['dev', 'test'];
 
-        $resolver = new BaggageSchemaResolver($environmentSchema, $environmentName, $schemaOverridableEnvironments);
+        $logger = new DebugLogger();
+        $resolver = new BaggageSchemaResolver(
+            $environmentSchema,
+            $environmentName,
+            $schemaOverridableEnvironments,
+            $logger
+        );
         $baggageCodec = new BaggageCodec();
         $listener = new BaggageRequestListener(
             $resolver,
             $baggageCodec,
             'X-Schema',
+            $logger,
         );
 
         $request = new Request();
@@ -92,19 +113,25 @@ class BaggageRequestListenerTest extends TestCase
         self::assertNull($resolver->getBaggage());
     }
 
-    // TODO!!
     public function testFail(): void
     {
         $environmentSchema = 'default';
         $environmentName = 'dev';
         $schemaOverridableEnvironments = ['dev', 'test'];
 
-        $resolver = new BaggageSchemaResolver($environmentSchema, $environmentName, $schemaOverridableEnvironments);
+        $logger = new DebugLogger();
+        $resolver = new BaggageSchemaResolver(
+            $environmentSchema,
+            $environmentName,
+            $schemaOverridableEnvironments,
+            $logger,
+        );
         $baggageCodec = new BaggageCodec();
         $listener = new BaggageRequestListener(
             $resolver,
             $baggageCodec,
             'X-Schema',
+            $logger,
         );
 
         $request = new Request([], [], [], [], [], ['HTTP_BAGGAGE' => 'X-Schema=tenant1']);

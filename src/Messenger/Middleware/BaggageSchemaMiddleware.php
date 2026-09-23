@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Macpaw\SchemaContextBundle\Messenger\Middleware;
 
+use Macpaw\SchemaContextBundle\Logger\DebugLogger;
 use Macpaw\SchemaContextBundle\Messenger\Stamp\BaggageSchemaStamp;
 use Macpaw\SchemaContextBundle\Service\BaggageCodec;
 use Macpaw\SchemaContextBundle\Service\BaggageSchemaResolver;
@@ -20,6 +21,7 @@ class BaggageSchemaMiddleware implements MiddlewareInterface
         private SendersLocatorInterface $sendersLocator,
         private BaggageSchemaResolver $baggageSchemaResolver,
         private BaggageCodec $baggageCodec,
+        private DebugLogger $logger,
     ) {
     }
 
@@ -28,15 +30,23 @@ class BaggageSchemaMiddleware implements MiddlewareInterface
         $stamp = $envelope->last(BaggageSchemaStamp::class);
 
         if ($this->isWorker($envelope) && !$this->isSyncTransport($envelope)) {
-            if ($stamp instanceof BaggageSchemaStamp) {
-                $this->baggageSchemaResolver
-                    ->setSchema($stamp->schema)
-                    ->setBaggage($stamp->baggage === null ? null : $this->baggageCodec->decode($stamp->baggage));
+            try {
+                if ($stamp instanceof BaggageSchemaStamp) {
+                    $schema = $stamp->schema;
+                    $baggage = $stamp->baggage === null ? null : $this->baggageCodec->decode($stamp->baggage);
+
+                    $this->logger->logInfoFromStamp($baggage, $schema);
+
+                    $this->baggageSchemaResolver
+                        ->setSchema($schema)
+                        ->setBaggage($baggage);
+                }
+
+                $result = $stack->next()->handle($envelope, $stack);
+            } finally {
+                $this->logger->logResetWorkerAfterWorker();
+                $this->baggageSchemaResolver->reset();
             }
-
-            $result = $stack->next()->handle($envelope, $stack);
-
-            $this->baggageSchemaResolver->reset();
 
             return $result;
         }
@@ -45,6 +55,8 @@ class BaggageSchemaMiddleware implements MiddlewareInterface
         $baggage = $this->baggageSchemaResolver->getBaggage() === null
             ? null
             : $this->baggageCodec->encode($this->baggageSchemaResolver->getBaggage());
+
+        $this->logger->logCreateMessage($this->baggageSchemaResolver->getBaggage(), $schema);
 
         $envelope = $envelope->with(new BaggageSchemaStamp($schema, $baggage));
 
